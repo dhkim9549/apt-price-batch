@@ -73,12 +73,12 @@ async function insertPrc(fileNm) {
       hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
     }).toArray();
 
-    if(aptPrcAr.length == 0 && dongNm == '') {
+    if(aptPrcAr.length == 0) {
       aptPrcAr = await collection.find({
-      stnmAddr2: stnmAddr2,
-      dongNm: '동명없음',
-      hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
-    }).toArray();
+        stnmAddr2: stnmAddr2,
+        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+      }).toArray();
+    }
 
     if(aptPrcAr.length > 1) {
       console.log(aptPrcAr);
