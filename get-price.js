@@ -1,4 +1,4 @@
-import { open } from "node:fs/promises";
+import { open, appendFile } from "node:fs/promises";
 import { MongoClient } from "mongodb";
 import "dotenv/config";
 
@@ -22,6 +22,8 @@ async function insertPrc(fileNm) {
 
   const file = await open(fileNm);
   let i = 0;
+  let failCnt = 0;
+
   for await (const line of file.readLines()) {
     i++;
     if (line.startsWith('보증번호')) {
@@ -37,10 +39,14 @@ async function insertPrc(fileNm) {
     apt.addr = w[2];
     apt.hsTynm = w[5];
 
+    await appendFile('r-list-output.txt', "\n" + w[0], 'utf8');
+
     if(apt.hsTynm != '아파트') continue;
 
     const addr_w = apt.addr.split(",");
     if(addr_w.length <= 1) continue;
+
+    let aptNm = addr_w[addr_w.length - 1].slice(0, -1);
 
     const stnm_addr_w = addr_w[0].split(" ");
 
@@ -52,31 +58,52 @@ async function insertPrc(fileNm) {
     let dongNm = '';
     let hoNm = '';
 
-    for(let i = 1; i <= 2; i++) {
-      let wt = dongho_w[i];
-      if(wt == undefined) continue;
-      if(wt.endsWith("동")) {
+    for(const wt of dongho_w) {
+      if(dongNm == "" && wt.endsWith("동") && !wt.startsWith("(")) {
         dongNm = wt;
       }
-      if(wt.endsWith("호")) {
+      if(hoNm == "" && wt.endsWith("호")) {
         hoNm = wt;
       }
     }
 
     let aptPrcAr = await collection.find({
       stnmAddr2: stnmAddr2,
-      $or: [
-        { dongNm: dongNm },
-        { dongNm: dongNm.substring(0, dongNm.length - 1)}
-      ],
-      hoNm: hoNm.substring(0, hoNm.length - 1)
-    }).toArray();;
+      dongNm: { $in: [dongNm, dongNm.substring(0, dongNm.length - 1)] },
+      hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+    }).toArray();
 
-    if(aptPrcAr.length == 1) continue;
+    if(aptPrcAr.length == 0 && dongNm == '') {
+      aptPrcAr = await collection.find({
+      stnmAddr2: stnmAddr2,
+      dongNm: '동명없음',
+      hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+    }).toArray();
+
+    if(aptPrcAr.length > 1) {
+      console.log(aptPrcAr);
+      aptPrcAr = aptPrcAr.filter((element) => element.aptNm.indexOf(aptNm.slice(0, 2)) >= 0);
+    }
+
+    console.log("aptPrcAr.length = " + aptPrcAr.length);
+
+    let price = "";
+ 
+    if(aptPrcAr.length == 1) {
+      price = aptPrcAr[0].price;
+    } else {
+      failCnt++;
+    }
+
+    await appendFile('r-list-output.txt', "," + price, 'utf8');
 
     if (i % 1 == 0) {
       console.log("i = " + i);
+      console.log({failCnt});
       console.log(s);
+      console.log({aptNm});
+      console.log({dongho_w});
+      console.log({dongNm, hoNm});
       console.log("apt = " + JSON.stringify(apt, null, 2));
       console.log("aptPrcAr = " + JSON.stringify(aptPrcAr, null, 2));
       console.log(new Date());
