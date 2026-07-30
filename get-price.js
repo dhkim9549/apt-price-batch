@@ -60,12 +60,17 @@ async function insertPrc(fileNm) {
 
     for(const wt of dongho_w) {
       if(dongNm == "" && wt.endsWith("동") && !wt.startsWith("(")) {
-        dongNm = wt.relpaceAll("동", "");
+        dongNm = wt;
+        dongNm = dongNm.replaceAll(/[동()]/g, "");
       }
       if(hoNm == "" && wt.endsWith("호")) {
-        hoNm = wt.replaceAll("호", "");
+        hoNm = wt;
+        hoNm = hoNm.replaceAll(/[호()]/g, "");
       }
     }
+
+    console.log("\n\n\n\n\n");
+    console.log({i, s, aptNm, stnmAddr2, dongNm, hoNm});
 
     let aptPrcAr = await collection.find({
       stnmAddr2: stnmAddr2,
@@ -126,12 +131,9 @@ async function insertPrc(fileNm) {
     await appendFile('r-list-output.txt', "," + price, 'utf8');
 
     if (i % 1 == 0) {
-      console.log("i = " + i);
       console.log({failCnt});
-      console.log(s);
       console.log({aptNm});
       console.log({dongho_w});
-      console.log({dongNm, hoNm});
       console.log("apt = " + JSON.stringify(apt, null, 2));
       console.log("aptPrcAr = " + JSON.stringify(aptPrcAr, null, 2));
       console.log(new Date());
