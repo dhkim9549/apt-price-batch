@@ -113,6 +113,14 @@ async function insertPrc(fileNm) {
       if(aptPrcAr.length > 0) console.log("flag 4");
     }
 
+    if(aptPrcAr.length == 0 && hoNm != "") {
+      aptPrcAr = await collection.find({
+        stnmAddr2: stnmAddr2,
+        hoNm: { $regex: hoNm, $options: "i" }
+      }).toArray();
+      if(aptPrcAr.length > 0) console.log("flag 5");
+    }
+
     if(aptPrcAr.length > 1) {
       console.log(aptPrcAr);
       aptPrcAr = aptPrcAr.filter((element) => element.aptNm.indexOf(aptNm.slice(0, 2)) >= 0);
