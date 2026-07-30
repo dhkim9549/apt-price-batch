@@ -55,17 +55,19 @@ async function insertPrc(fileNm) {
 
     const dongho_w = addr_w[1].split(" ");
 
-    let dongNm = '';
-    let hoNm = '';
+    let dongNm = '', dongNm2 = '';
+    let hoNm = '', hoNm2 = '';
 
     for(const wt of dongho_w) {
       if(dongNm == "" && wt.endsWith("동") && !wt.startsWith("(")) {
         dongNm = wt;
         dongNm = dongNm.replaceAll(/[동()]/g, "");
+        dongNm2 = dongNm + "동";
       }
       if(hoNm == "" && wt.endsWith("호")) {
         hoNm = wt;
         hoNm = hoNm.replaceAll(/[호()]/g, "");
+        hoNm2 = hoNm + "호";
       }
     }
 
@@ -74,14 +76,19 @@ async function insertPrc(fileNm) {
 
     let aptPrcAr = await collection.find({
       stnmAddr2: stnmAddr2,
-      dongNm: dongNm,
-      hoNm: hoNm
+      dongNm: { $in: [dongNm, dongNm2] },
+      hoNm: { $in: [hoNm, hoNm2] }
     }).toArray();
+
+    if(aptPrcAr.length > 1) {
+      console.log(aptPrcAr);
+      aptPrcAr = aptPrcAr.filter((element) => element.aptNm.indexOf(aptNm.slice(0, 2)) >= 0);
+    }
 
     if(aptPrcAr.length == 0) {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
-        hoNm: hoNm
+        hoNm: { $in: [hoNm, hoNm2] }
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 1");
     }
@@ -90,7 +97,7 @@ async function insertPrc(fileNm) {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
         dongNm: { $regex: dongNm, $options: "i" },
-        hoNm: hoNm
+        hoNm: { $in: [hoNm, hoNm2] }
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 2");
     }
@@ -98,7 +105,7 @@ async function insertPrc(fileNm) {
     if(aptPrcAr.length != 1 && hoNm != "") {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
-        dongNm: dongNm,
+        dongNm: { $in: [dongNm, dongNm2] },
         hoNm: { $regex: hoNm, $options: "i" }
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 3");
@@ -113,17 +120,12 @@ async function insertPrc(fileNm) {
       if(aptPrcAr.length > 0) console.log("flag 4");
     }
 
-    if(aptPrcAr.length == 0 && hoNm != "") {
+    if(aptPrcAr.length != 1 && hoNm != "") {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
         hoNm: { $regex: hoNm, $options: "i" }
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 5");
-    }
-
-    if(aptPrcAr.length > 1) {
-      console.log(aptPrcAr);
-      aptPrcAr = aptPrcAr.filter((element) => element.aptNm.indexOf(aptNm.slice(0, 2)) >= 0);
     }
 
     console.log("aptPrcAr.length = " + aptPrcAr.length);
