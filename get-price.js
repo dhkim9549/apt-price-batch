@@ -78,6 +78,16 @@ async function insertPrc(fileNm) {
         stnmAddr2: stnmAddr2,
         hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
       }).toArray();
+      if(aptPrcAr.length > 0) console.log("flag 1");
+    }
+
+    if(aptPrcAr.length == 0) {
+      aptPrcAr = await collection.find({
+        stnmAddr2: stnmAddr2,
+        dongNm: { $regex: dongNm, $options: "i" },
+        hoNm: { $regex: hoNm, $options: "i" }
+      }).toArray();
+      if(aptPrcAr.length > 0) console.log("flag 2");
     }
 
     if(aptPrcAr.length > 1) {
