@@ -81,13 +81,31 @@ async function insertPrc(fileNm) {
       if(aptPrcAr.length > 0) console.log("flag 1");
     }
 
-    if(aptPrcAr.length == 0) {
+    if(aptPrcAr.length != 1 && hoNm != "") {
+      aptPrcAr = await collection.find({
+        stnmAddr2: stnmAddr2,
+        dongNm: { $regex: dongNm, $options: "i" },
+        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+      }).toArray();
+      if(aptPrcAr.length > 0) console.log("flag 2");
+    }
+
+    if(aptPrcAr.length != 1 && hoNm != "") {
+      aptPrcAr = await collection.find({
+        stnmAddr2: stnmAddr2,
+        dongNm: { $regex: dongNm, $options: "i" },
+        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+      }).toArray();
+      if(aptPrcAr.length > 0) console.log("flag 3");
+    }
+
+    if(aptPrcAr.length != 1 && hoNm != "") {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
         dongNm: { $regex: dongNm, $options: "i" },
         hoNm: { $regex: hoNm, $options: "i" }
       }).toArray();
-      if(aptPrcAr.length > 0) console.log("flag 2");
+      if(aptPrcAr.length > 0) console.log("flag 4");
     }
 
     if(aptPrcAr.length > 1) {
