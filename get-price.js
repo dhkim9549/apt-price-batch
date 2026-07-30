@@ -60,23 +60,23 @@ async function insertPrc(fileNm) {
 
     for(const wt of dongho_w) {
       if(dongNm == "" && wt.endsWith("동") && !wt.startsWith("(")) {
-        dongNm = wt;
+        dongNm = wt.relpaceAll("동", "");
       }
       if(hoNm == "" && wt.endsWith("호")) {
-        hoNm = wt;
+        hoNm = wt.replaceAll("호", "");
       }
     }
 
     let aptPrcAr = await collection.find({
       stnmAddr2: stnmAddr2,
-      dongNm: { $in: [dongNm, dongNm.substring(0, dongNm.length - 1)] },
-      hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+      dongNm: dongNm,
+      hoNm: hoNm
     }).toArray();
 
     if(aptPrcAr.length == 0) {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
-        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+        hoNm: hoNm
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 1");
     }
@@ -85,7 +85,7 @@ async function insertPrc(fileNm) {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
         dongNm: { $regex: dongNm, $options: "i" },
-        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+        hoNm: hoNm
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 2");
     }
@@ -93,8 +93,8 @@ async function insertPrc(fileNm) {
     if(aptPrcAr.length != 1 && hoNm != "") {
       aptPrcAr = await collection.find({
         stnmAddr2: stnmAddr2,
-        dongNm: { $regex: dongNm, $options: "i" },
-        hoNm: { $in: [hoNm, hoNm.substring(0, hoNm.length - 1)] }
+        dongNm: dongNm,
+        hoNm: { $regex: hoNm, $options: "i" }
       }).toArray();
       if(aptPrcAr.length > 0) console.log("flag 3");
     }
