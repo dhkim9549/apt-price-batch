@@ -7,7 +7,7 @@ main();
 async function main() {
   console.log("start main...");
   console.log(process.argv);
-  let fileNm = process.argv[2] ?? 'origin-2026.csv';
+  let fileNm = process.argv[2] ?? "origin-2026.csv";
   await insertPrc(fileNm);
 }
 
